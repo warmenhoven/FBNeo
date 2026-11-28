@@ -2063,7 +2063,7 @@ struct BurnDriver BurnDrvIndytempd = {
 	"indytempd", "indytemp", "atarisy1", NULL, "1985",
 	"Indiana Jones and the Temple of Doom (German)\0", NULL, "Atari Games", "System 1",
 	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING | BDF_CLONE | BDF_HISCORE_SUPPORTED, 2, HARDWARE_MISC_PRE90S, GBF_MISC, 0,
+	BDF_GAME_WORKING | BDF_CLONE | BDF_HISCORE_SUPPORTED, 2, HARDWARE_MISC_PRE90S, GBF_SCRFIGHT, 0,
 	NULL, indytempdRomInfo, indytempdRomName, NULL, NULL, NULL, NULL, IndytempInputInfo, IndytempDIPInfo,
 	IndytempInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &DrvRecalc, 0x400,
 	336, 240, 4, 3
