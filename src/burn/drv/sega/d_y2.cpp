@@ -45,6 +45,8 @@ static UINT8 DrvDips[1];
 static UINT16 DrvInputs[3];
 static UINT8 DrvCoinPrev[2];
 
+static ClearOpposite<2, UINT16> clear_opposite;
+
 static INT32 nSndROMLen;
 
 #define RAM_SIZE		0x10000000
@@ -2855,6 +2857,8 @@ static void DrvDoReset()
 	RPP324Reset();
 
 	update_irqs();
+
+	clear_opposite.reset();
 }
 
 static INT32 DrvInit(UINT16 seed, const UINT8 *data_bits, const UINT8 *key_bits, INT32 snd_roms, UINT32 state_megabytes)
@@ -3083,15 +3087,18 @@ static INT32 DrvDraw()
 
 static void MakeInputs()
 {
-	DrvInputs[0] = 0xffff;
-	DrvInputs[1] = 0xffff;
-	DrvInputs[2] = 0xffff;
+	memset(DrvInputs, 0, sizeof(DrvInputs));
 
 	for (INT32 i = 0; i < 16; i++) {
-		DrvInputs[0] ^= (DrvJoy1[i] & 1) << i;
-		DrvInputs[1] ^= (DrvJoy2[i] & 1) << i;
-		DrvInputs[2] ^= (DrvJoy3[i] & 1) << i;
+		DrvInputs[0] |= (DrvJoy1[i] & 1) << i;
+		DrvInputs[1] |= (DrvJoy2[i] & 1) << i;
+		DrvInputs[2] |= (DrvJoy3[i] & 1) << i;
 	}
+
+	clear_opposite.check(0, DrvInputs[0], 0x2000, 0x1000, 0x0800, 0x0400, nSocd[0]);
+	clear_opposite.check(1, DrvInputs[1], 0x2000, 0x1000, 0x0800, 0x0400, nSocd[1]);
+
+	for (INT32 i = 0; i < 3; i++) DrvInputs[i] = ~DrvInputs[i];
 
 	// the FPGA holds coin pulses until the board library consumes them
 	for (INT32 chute = 0; chute < 2; chute++) {
@@ -3109,7 +3116,6 @@ static INT32 DrvFrame()
 
 	// runahead was turned off: stop copying pages
 	if (nCheckpointId && ++nCheckpointAge > 30) CheckpointDrop();
-
 
 	MakeInputs();
 
@@ -3218,6 +3224,8 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		SCAN_VAR(jvs_fire);
 		SCAN_VAR(DrvCoinPrev);
 		SCAN_VAR(display);
+
+		clear_opposite.scan();
 	}
 
 	if (nAction & ACB_NVRAM) {
